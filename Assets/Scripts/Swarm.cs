@@ -119,7 +119,7 @@ public class Swarm : MonoBehaviour
         }
     }
     
-    // NEED TO GO OVER FIXEDUPDATE() AGAIN --- i AM NOT SURE ABOUT THIS PART
+    // NEED TO GO OVER FIXEDUPDATE() AGAIN --- i AM NOT SURE ABOUT THIS PART --- when played, cohesion is too low and separation is too high NEED TO FIX THIS
 
     /// <summary>
     /// Sim Loop
@@ -163,7 +163,7 @@ public class Swarm : MonoBehaviour
                 float dist = Mathf.Sqrt(sqrDist);
                 // separation: away from neighbor, stronger when closer (use inverse distance weighting)
                 if (dist > 0.0001f)
-                    sepAcc += (posI - posJ).normalized / dist;
+                    sepAcc += (posI - posJ).normalized * (1f - (dist / neighbourDistance));
 
                 // alignment: sum neighbour velocities
                 alignAcc += boids[j].velocity;
@@ -193,16 +193,22 @@ public class Swarm : MonoBehaviour
                 Vector3 center = (cohAcc / neighborCount);
                 Vector3 toCenter = center - posI;
                 if (toCenter.sqrMagnitude > 0.0001f)
-                    cohesionVec = toCenter.normalized;
+                    cohesionVec = toCenter / neighbourDistance;
+                    //cohesionVec = toCenter.normalized;
             }
             else
             {
+                //no neighbours but assigning wander to separation/alignment/cohesion did not function as expected. Try zeroing them for second pass prep to "wander"
+                separationVec = Vector3.zero;
+                alignmentVec = Vector3.zero;
+                cohesionVec = Vector3.zero;
+                /*
                 // No neighbours: wander rule is boid's current velocity (normalized)
                 Vector3 vel = boids[i].velocity;
                 if (vel.sqrMagnitude > 0.0001f)
                     separationVec = alignmentVec = cohesionVec = vel.normalized;
                 else
-                    separationVec = alignmentVec = cohesionVec = Vector3.forward; // fallback
+                    separationVec = alignmentVec = cohesionVec = Vector3.forward; // fallback*/
             }
 
             boids[i].separation = separationVec;
@@ -314,9 +320,8 @@ public class Swarm : MonoBehaviour
                 }
             }
 
-            // wander when no neighbours already baked into separation/alignment/cohesion when neighborCount==0 (we set them equal to velocity.normalized)
-            // additionally apply a generic wander weight if desired:
-            if (boids[i].velocity.sqrMagnitude > 0.000001f)
+            // wander when neighborCount == 0 ie we have no neighbours
+            if (boids[i].alignment == Vector3.zero && boids[i].cohesion == Vector3.zero && boids[i].separation == Vector3.zero)
             {
                 Vector3 wanderVec = boids[i].velocity.normalized;
                 totalForce += RuleSteer(wanderVec, wanderWeight);
@@ -403,7 +408,7 @@ public class Swarm : MonoBehaviour
         NavMeshHit startHit;
         bool startFound = NavMesh.SamplePosition(boidZeroPos, out startHit, 5.0f, NavMesh.AllAreas);
         NavMeshHit targetHit;
-        bool targetFound = NavMesh.SamplePosition(boidZeroPos, out targetHit, 5.0f, NavMesh.AllAreas);
+        bool targetFound = NavMesh.SamplePosition(boidZeroGoal, out targetHit, 5.0f, NavMesh.AllAreas);
 
         if (!startFound || !targetFound)
         {

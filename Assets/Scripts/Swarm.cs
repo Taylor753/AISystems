@@ -253,7 +253,7 @@ public class Swarm : MonoBehaviour
             //adding some randomness to the boids
             Vector3 randomWander = new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.2f, 0.2f), Random.Range(-0.2f, 0.2f));
             if (toCenter.sqrMagnitude > EPSILON)
-                cohesionVec = (toCenter / neighbourDistance) * 0.7f + randomWander * 0.3f;
+                cohesionVec = (toCenter / neighbourDistance) * 0.9f + randomWander * 0.3f;
             else
                 cohesionVec = randomWander * 0.3f;
         }

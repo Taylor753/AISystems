@@ -249,6 +249,17 @@ public class Swarm : MonoBehaviour
             /* Vector3 toCenter = (cohAcc / neighborCount) - posI;
              if (toCenter.sqrMagnitude > EPSILON)
                  cohesionVec = toCenter / neighbourDistance;*/
+
+            //adding some randomness to the boids
+            Vector3 randomWander = new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.2f, 0.2f), Random.Range(-0.2f, 0.2f));
+            if (toCenter.sqrMagnitude > EPSILON)
+                cohesionVec = (toCenter / neighbourDistance) * 0.7f + randomWander * 0.3f;
+            else
+                cohesionVec = randomWander * 0.3f;
+        }
+        else //added for a true randomWander when there are no boid neighbours
+        {
+            cohesionVec = new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(-0.3f, 0.3f), Random.Range(-0.3f, 0.3f));
         }
         //update the rule vectors since we're past neighbourCount > 0
         boids[i].separation = separationVec;

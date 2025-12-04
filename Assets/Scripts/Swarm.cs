@@ -239,15 +239,22 @@ public class Swarm : MonoBehaviour
             if (avgVel.sqrMagnitude > EPSILON)
                 alignmentVec = avgVel.normalized;
 
-            Vector3 toCenter = (cohAcc / neighborCount) - posI;
+            //cohesion, here we are trying scale by distance to local center (inverse-square style), because it's too strong!
+            Vector3 center = cohAcc / neighborCount;
+            Vector3 toCenter = center - posI;
+            float distanceFactor = Mathf.Clamp01(toCenter.magnitude / neighbourDistance);
             if (toCenter.sqrMagnitude > EPSILON)
-                cohesionVec = toCenter / neighbourDistance; // normalized optional
+                cohesionVec = toCenter.normalized * distanceFactor; // scale by distance factor
+
+            /* Vector3 toCenter = (cohAcc / neighborCount) - posI;
+             if (toCenter.sqrMagnitude > EPSILON)
+                 cohesionVec = toCenter / neighbourDistance;*/
         }
         //update the rule vectors since we're past neighbourCount > 0
         boids[i].separation = separationVec;
         boids[i].alignment = alignmentVec;
         boids[i].cohesion = cohesionVec;
-        boids[i].neighborCount = neighborCount; // store for wander logic
+        boids[i].neighborCount = neighborCount; // stored for wander
 
         //call for the check on obstacle avoidance
         ComputeObstacles(i, posI);
